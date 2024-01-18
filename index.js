@@ -2,6 +2,7 @@ let express = require("express")
 let { db } = require("./firebase")
 let bcrypt = require("bcrypt")
 require("dotenv").config()
+require("cors")()
 
 let app = express()
 const PORT = 8080
@@ -15,12 +16,18 @@ app.use(require("body-parser").urlencoded({ extended: false }))
 
 app.post("/login", async (req, res) => {
   let { username, password } = req.body
+  console.log(username, password)
   let userRef = await db.collection("accounts").doc(username)
   let user = await userRef.get()
   if (user.exists) {
-    let validPasssword = bcrypt.compareSync(password, user.data().password)
-    if (validPasssword) res.send({ "success": true })
-    else res.send({ "success": false })
+    try {
+      let validPasssword = await bcrypt.compare(password, user.data().password)
+      if (validPasssword) res.send({ "success": true })
+      else res.send({ "success": false })
+    } catch (error) {
+      console.log(error.message)
+      res.end()
+    }
   }
 })
 
