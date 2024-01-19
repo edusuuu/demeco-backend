@@ -2,7 +2,7 @@ let express = require("express")
 let { db } = require("./firebase")
 let bcrypt = require("bcrypt")
 require("dotenv").config()
-require("cors")()
+const cors = require("cors")
 
 let app = express()
 const PORT = 8080
@@ -10,6 +10,8 @@ const PORT = 8080
 // GLOBAL MIDDLEWARES
 app.use(express.json())
 app.use(require("body-parser").urlencoded({ extended: false }))
+app.use(cors());
+
 
 
 // ROUTES OR ENDPOINTS
@@ -32,13 +34,25 @@ app.post("/login", async (req, res) => {
 })
 
 app.post("/register", async (req, res) => {
-  let { username, password } = req.body;
-  let userRef = db.collection("accounts").doc(username)
+  let { username, password, fname, lname, gender, bday, email, phonenum } = req.body;
+  let userRef = db.collection("accounts").doc(username);
 
-  let hash = bcrypt.hashSync(password, 10)
-  await userRef.set({ username: username, password: hash })
-  res.status(201).send({ "success": true })
-})
+  let hash = bcrypt.hashSync(password, 10);
+
+  // You can adjust the fields here based on your Firebase data model
+  await userRef.set({
+      username: username,
+      password: hash,
+      fname: fname,
+      lname: lname,
+      gender: gender,
+      bday: bday,
+      email: email,
+      phonenum: phonenum
+  });
+
+  res.status(201).send({ "success": true });
+});
 
 
 // APP RUNNING ON PORT 6969
